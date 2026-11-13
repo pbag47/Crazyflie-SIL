@@ -22,7 +22,7 @@ namespace Antmicro.Renode.Peripherals.Timers
     [AllowedTranslations(AllowedTranslation.ByteToDoubleWord | AllowedTranslation.WordToDoubleWord)]
     public class STM32_Basic_Timer : LimitTimer, IDoubleWordPeripheral
     {
-        public STM32_Basic_Timer(Machine machine, long frequency, uint initialLimit) : base(machine.ClockSource, frequency, limit: initialLimit,  direction: Direction.Ascending, enabled: false, autoUpdate: false)
+        public STM32_Basic_Timer(Machine machine, ulong frequency, uint initialLimit) : base(machine.ClockSource, frequency, limit: initialLimit,  direction: Direction.Ascending, enabled: false, autoUpdate: false)
         {
             IRQ = new GPIO();
             this.initialLimit = initialLimit;
@@ -117,7 +117,7 @@ namespace Antmicro.Renode.Peripherals.Timers
                 },
 
                 {(long)Registers.Prescaler, new DoubleWordRegister(this)
-                    .WithValueField(0, 32, writeCallback: (_, val) => Divider = (int)val + 1, valueProviderCallback: _ => (uint)Divider - 1, name: "Prescaler value (PSC)")
+                    .WithValueField(0, 32, writeCallback: (_, val) => Divider = val + 1, valueProviderCallback: _ => (uint)Divider - 1, name: "Prescaler value (PSC)")
                     .WithWriteCallback((_, __) =>
                     {
                         UpdateInterrupts();
@@ -127,7 +127,7 @@ namespace Antmicro.Renode.Peripherals.Timers
                 {(long)Registers.AutoReload, new DoubleWordRegister(this)
                     .WithValueField(0, 32, writeCallback: (_, val) =>
                     {
-                        autoReloadValue = val;
+                        autoReloadValue = (uint)val;
                         if(!autoReloadPreloadEnable.Value)
                         {
                             Limit = autoReloadValue;

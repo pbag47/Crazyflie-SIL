@@ -27,6 +27,7 @@ namespace Antmicro.Renode.Peripherals.I2C
         {
             EventInterrupt = new GPIO();
             ErrorInterrupt = new GPIO();
+            DmaRequest = new GPIO();
             CreateRegisters();
             Reset();
         }
@@ -73,6 +74,8 @@ namespace Antmicro.Renode.Peripherals.I2C
             state = State.Idle;
             EventInterrupt.Unset();
             ErrorInterrupt.Unset();
+            DmaRequest.Unset(); 
+            // DmeRequest.set(false); 
 
             registers.Reset();
             data.Reset();
@@ -85,6 +88,12 @@ namespace Antmicro.Renode.Peripherals.I2C
         }
 
         public GPIO ErrorInterrupt
+        {
+            get;
+            private set;
+        }
+
+        public GPIO DmaRequest 
         {
             get;
             private set;
@@ -159,7 +168,13 @@ namespace Antmicro.Renode.Peripherals.I2C
             ErrorInterrupt.Set(errorInterruptEnable.Value && acknowledgeFailed.Value);
         }
 
-        private uint DataRead(uint oldValue)
+        private void PulseDmaRequest() 
+        {
+            DmaRequest.Set(true);
+            DmaRequest.Set(false);
+        }
+
+        private ulong DataRead(ulong oldValue) 
         {
             var result = 0u;
             if(dataToReceive != null && dataToReceive.Any())
@@ -178,7 +193,7 @@ namespace Antmicro.Renode.Peripherals.I2C
             return result;
         }
 
-        private void DataWrite(uint oldValue, uint newValue)
+        private void DataWrite(ulong oldValue, ulong newValue) 
         {
             //moved from WriteByte
             writeLock = true;
@@ -203,6 +218,7 @@ namespace Antmicro.Renode.Peripherals.I2C
                         this.Log(LogLevel.Noisy, "Data will be read from slave {0} at address 0x{1:X}", selectedSlave, address);
                         dataToReceive = new Queue<byte>(selectedSlave.Read());
                         byteTransferFinished.Value = true;
+                        machine.LocalTimeSource.ExecuteInNearestSyncedState(_ => PulseDmaRequest());
                     }
                     else
                     {

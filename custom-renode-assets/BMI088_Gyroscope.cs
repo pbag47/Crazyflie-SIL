@@ -147,6 +147,33 @@ namespace Antmicro.Renode.Peripherals.Sensors
             fifo.FeedSamplesFromFile(path);
         }
 
+        public void FeedGyroSamplesLooped(string path, uint frequency)  // Added
+        {
+            if(!this.TryGetMachine(out var machine))
+            {
+                this.Log(LogLevel.Warning, "Could not find owning machine, cannot feed samples periodically");
+                return;
+            }
+
+            var samples = new List<Vector3DSample>();
+            foreach(var line in System.IO.File.ReadAllLines(path))
+            {
+                var trimmed = line.Trim();
+                if(trimmed.Length == 0 || trimmed.StartsWith("#"))
+                {
+                    continue;
+                }
+                var tokens = trimmed.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                var sample = new Vector3DSample();
+                if(sample.TryLoad(tokens))
+                {
+                    samples.Add(sample);
+                }
+            }
+
+            fifo.FeedSamplesPeriodically(machine, this, "gyro", "0ms", frequency, samples);
+        }
+
         private void DefineRegisters()
         {
             Registers.GyroChipID.Define(this, 0x0F); //RO
