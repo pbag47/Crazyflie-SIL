@@ -5,9 +5,8 @@
 // This file is licensed under the MIT License.
 // Full license text is available in 'licenses/MIT.txt'.
 //
-//
-// Original path: 
-// renode-infrastructure/src/Emulator/Peripherals/Peripherals/Sensors/BMI088_Accelerometer.cs
+// Original source: https://github.com/bitcraze/renode-infrastructure/tree/crazyflie
+// path: /renode-infrastructure/src/Emulator/Peripherals/Peripherals/Sensors/BMI088_Accelerometer.cs
 
 using System;
 using System.Linq;

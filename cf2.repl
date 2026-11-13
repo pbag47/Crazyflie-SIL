@@ -1,4 +1,8 @@
 // External peripherals used for the Bitcraze Crazyflie 2.1
+//
+// Original source: https://github.com/bitcraze/renode/tree/crazyflie
+// path: /renode/platforms/boards/cf2.repl
+
 
 using "platforms/cpus/stm32f405.repl"
 

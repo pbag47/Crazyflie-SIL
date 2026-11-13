@@ -4,6 +4,9 @@
 // This file is licensed under the MIT License.
 // Full license text is available in 'licenses/MIT.txt'.
 //
+// Original source: https://github.com/bitcraze/renode-infrastructure/tree/crazyflie
+// path: /renode-infrastructure/src/Emulator/Peripherals/Peripherals/Timers/STM32_Timer.cs
+
 using System;
 using System.Collections.Generic;
 using Antmicro.Renode.Core;

@@ -5,6 +5,9 @@
 // This file is licensed under the MIT License.
 // Full license text is available in 'licenses/MIT.txt'.
 //
+// Original source: https://github.com/bitcraze/renode-infrastructure/tree/crazyflie
+// path: /renode-infrastructure/src/Emulator/Peripherals/Peripherals/Sensors/BMP388.cs
+
 using System;
 using System.Linq;
 using System.Collections.Generic;

@@ -1,4 +1,8 @@
 // STM32F405 with peripherals needed for the Bitcraze Crazyflie 2.1
+//
+// Original source: https://github.com/bitcraze/renode/tree/crazyflie
+// path: /renode/platforms/cpus/stm32f405.repl
+
 
 flash: Memory.MappedMemory @ sysbus 0x08000000
     size: 0x100000

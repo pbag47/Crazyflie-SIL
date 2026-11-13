@@ -5,6 +5,9 @@
 // This file is licensed under the MIT License.
 // Full license text is available in 'licenses/MIT.txt'.
 //
+// Original source: https://github.com/bitcraze/renode-infrastructure/tree/crazyflie
+// path: /renode-infrastructure/src/Emulator/Peripherals/Peripherals/I2C/STM32F4_I2C.cs
+
 using System;
 using Antmicro.Renode.Core;
 using Antmicro.Renode.Core.Structure;
