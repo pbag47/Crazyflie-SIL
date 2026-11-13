@@ -2,8 +2,21 @@
 :Original source: https://github.com/bitcraze/renode/tree/crazyflie
 :path: /renode/scripts/single-node/crazyflie.resc
 
+logFile @logs/logfile.log true 
+logLevel 3 file 
+
+
+include @custom-renode-assets/STM32F4_I2C.cs 
+include @custom-renode-assets/STM32_Basic_Timer.cs 
+include @custom-renode-assets/EEPROM_24AA64.cs 
+include @custom-renode-assets/CF_Syslink.cs 
+include @custom-renode-assets/BMI088_Gyroscope.cs 
+include @custom-renode-assets/BMI088_Accelerometer.cs 
+include @custom-renode-assets/BMP388.cs 
+
+
 mach create "CF2.1"
-machine LoadPlatformDescription @platforms/boards/cf2.repl
+machine LoadPlatformDescription @cf2.repl 
 
 # Should be written during production
 sysbus.otp WriteString 0x7800 "0;CF21"
@@ -39,5 +52,13 @@ logLevel -1 console sysbus.gpioPortC.ledRR
 # logLevel -1 console sysbus.i2c3.bmi_accel
 # logLevel -1 console sysbus.i2c3.bmp_baro
 
+logLevel -1 file sysbus.i2c3 
+logLevel -1 file sysbus.dma1 
+logLevel -1 file sysbus.i2c3.bmi_gyro 
+
 # Two initial data samples required to pass initialization and test
 sysbus.i2c3.bmi_gyro FeedGyroSample 10 20 30 2
+# sysbus.i2c3.bmi_gyro FeedGyroSamplesLooped @gyro_values.txt 100
+
+sysbus.usart3 AddLineHook "" "Antmicro.Renode.Logging.Logger.Log(LogLevel.Error, line)"
+# sysbus.usart3 AddLineHook "Free heap" "Antmicro.Renode.Emulator.Exit()"
