@@ -218,7 +218,14 @@ namespace Antmicro.Renode.Peripherals.I2C
                         this.Log(LogLevel.Noisy, "Data will be read from slave {0} at address 0x{1:X}", selectedSlave, address);
                         dataToReceive = new Queue<byte>(selectedSlave.Read());
                         byteTransferFinished.Value = true;
-                        machine.LocalTimeSource.ExecuteInNearestSyncedState(_ => PulseDmaRequest());
+                        var bytesToDeliver = dataToReceive.Count;
+                        machine.LocalTimeSource.ExecuteInNearestSyncedState(_ =>
+                        {
+                            for(var i = 0; i < bytesToDeliver; i++)
+                            {
+                                PulseDmaRequest();
+                            }
+                        });
                     }
                     else
                     {

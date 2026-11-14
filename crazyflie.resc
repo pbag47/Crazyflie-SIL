@@ -3,7 +3,7 @@
 :path: /renode/scripts/single-node/crazyflie.resc
 
 logFile @logs/logfile.log true 
-logLevel 3 file 
+# logLevel 3 file 
 
 
 include @custom-renode-assets/STM32F4_I2C.cs 
@@ -41,24 +41,28 @@ connector Connect sysbus.i2c3.bmi_gyro sensors
 # connector Connect sysbus.usart6 syslink
 
 # Uncomment/comment to toggle noisy LEDs logLevel
-logLevel -1 console sysbus.gpioPortD.ledB
-logLevel -1 console sysbus.gpioPortC.ledRL
-logLevel -1 console sysbus.gpioPortC.ledGL
-logLevel -1 console sysbus.gpioPortC.ledGR
-logLevel -1 console sysbus.gpioPortC.ledRR
+# logLevel -1 console sysbus.gpioPortD.ledB
+# logLevel -1 console sysbus.gpioPortC.ledRL
+# logLevel -1 console sysbus.gpioPortC.ledGL
+# logLevel -1 console sysbus.gpioPortC.ledGR
+# logLevel -1 console sysbus.gpioPortC.ledRR
 
 # Uncomment/comment to toggle how much information the sensors log
 # logLevel -1 console sysbus.i2c3.bmi_gyro
 # logLevel -1 console sysbus.i2c3.bmi_accel
 # logLevel -1 console sysbus.i2c3.bmp_baro
 
-logLevel -1 file sysbus.i2c3 
-logLevel -1 file sysbus.dma1 
-logLevel -1 file sysbus.i2c3.bmi_gyro 
+# logLevel -1 file sysbus.i2c3 
+# logLevel -1 file sysbus.dma1 
+# logLevel -1 file sysbus.i2c3.bmi_gyro 
 
 # Two initial data samples required to pass initialization and test
 sysbus.i2c3.bmi_gyro FeedGyroSample 10 20 30 2
 # sysbus.i2c3.bmi_gyro FeedGyroSamplesLooped @gyro_values.txt 100
+
+# sysbus LogPeripheralAccess sysbus.i2c3
+# sysbus LogAllPeripheralsAccess true
+# sysbus.cpu LogFunctionNames true
 
 sysbus.usart3 AddLineHook "" "Antmicro.Renode.Logging.Logger.Log(LogLevel.Error, line)"
 # sysbus.usart3 AddLineHook "Free heap" "Antmicro.Renode.Emulator.Exit()"
