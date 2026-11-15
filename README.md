@@ -5,7 +5,17 @@ Starting from their Renode forks:
 - [Renode](https://github.com/bitcraze/renode/tree/crazyflie)
 - [Renode infrastructure](https://github.com/bitcraze/renode-infrastructure/tree/crazyflie)
 
-This project is an attempt to migrate existing code to a newer version of Renode (1.17.0).
-Once this step is reached, the plan is to setup a UDP communication link in order to connect the emulated hardware to a physics/graphics engine such as Godot, Unity or Unreal Engine.
-
+The plan is to setup a UDP communication link in order to connect the emulated hardware to a physics/graphics engine such as Godot, Unity or Unreal Engine.
 The ultimate goal is to fly a virtual Crazyflie using its actual firmware and flight controller.
+
+
+Project roadmap:
+| Step | Validation | Status |
+| --- | --- | --- |
+| Renode: Migrate existing code to a newer version of Renode (1.17.0) | Pass the system self-test | ✅ |
+| Renode: Provide synthetic data to sensors | Reach ready-to-fly state | :small_orange_diamond: |
+| Renode: Provide pilot input | Observe motor PWM commands |  | 
+| Renode: Setup UDP communication to provide data to sensors and retrieve motor PWM commands | Feed sensor data and observe motor PWM from another process |  |
+| Physics Engine: Model the Crazyflie, its motors and its sensors |  |  |
+| Physics Engine: Setup UDP communication | Fly the Crazyflie model using its emulated hardware in Renode | |
+
