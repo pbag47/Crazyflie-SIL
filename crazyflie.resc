@@ -58,7 +58,8 @@ connector Connect sysbus.i2c3.bmi_gyro sensors
 
 # Two initial data samples required to pass initialization and test
 sysbus.i2c3.bmi_gyro FeedGyroSample 10 20 30 2
-# sysbus.i2c3.bmi_gyro FeedGyroSamplesLooped @gyro_values.txt 100
+sysbus.i2c3.bmi_gyro FeedGyroSamplesLooped @data/gyro_values.txt 100
+sysbus.i2c3.bmi_gyro StartDataInterrupts 1000
 
 # sysbus LogPeripheralAccess sysbus.i2c3
 # sysbus LogAllPeripheralsAccess true

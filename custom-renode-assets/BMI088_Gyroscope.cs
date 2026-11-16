@@ -133,6 +133,25 @@ namespace Antmicro.Renode.Peripherals.Sensors
             }
         }
 
+        private IManagedThread interruptThread;
+
+        public void StartDataInterrupts(uint frequency)
+        {
+            if(!this.TryGetMachine(out var machine))
+            {
+                this.Log(LogLevel.Warning, "Could not find owning machine");
+                return;
+            }
+            interruptThread?.Stop();
+            interruptThread = machine.ObtainManagedThread(TriggerDataInterrupt, frequency, "gyro data ready", this);
+            interruptThread.Start();
+        }
+
+        public void StopDataInterrupts()
+        {
+            interruptThread?.Stop();
+        }
+
         public void FeedGyroSample(decimal x, decimal y, decimal z, int repeat = 1)
         {
             var sample = new Vector3DSample(x, y, z);
@@ -147,7 +166,7 @@ namespace Antmicro.Renode.Peripherals.Sensors
             fifo.FeedSamplesFromFile(path);
         }
 
-        public void FeedGyroSamplesLooped(string path, uint frequency)  // Added
+        public void FeedGyroSamplesLooped(string path, uint frequency)
         {
             if(!this.TryGetMachine(out var machine))
             {
