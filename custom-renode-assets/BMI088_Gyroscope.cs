@@ -1,4 +1,5 @@
 //
+// Copyright (c) 2026 Pierre BAGNARA
 // Copyright (c) 2021 Bitcraze
 // Copyright (c) 2010-2020 Antmicro
 //
@@ -133,23 +134,15 @@ namespace Antmicro.Renode.Peripherals.Sensors
             }
         }
 
-        private IManagedThread interruptThread;
+        private IManagedThread dataPushThread;
 
-        public void StartDataInterrupts(uint frequency)
+        private void PushSample(Vector3DSample sample)
+        // Entry point for feeding gyro samples
+        // CF2 stabilizer loop expects 1000Hz refresh rate
         {
-            if(!this.TryGetMachine(out var machine))
-            {
-                this.Log(LogLevel.Warning, "Could not find owning machine");
-                return;
-            }
-            interruptThread?.Stop();
-            interruptThread = machine.ObtainManagedThread(TriggerDataInterrupt, frequency, "gyro data ready", this);
-            interruptThread.Start();
-        }
-
-        public void StopDataInterrupts()
-        {
-            interruptThread?.Stop();
+            fifo.FeedSample(sample);
+            fifo.TryDequeueNewSample();
+            TriggerDataInterrupt();
         }
 
         public void FeedGyroSample(decimal x, decimal y, decimal z, int repeat = 1)
@@ -157,16 +150,16 @@ namespace Antmicro.Renode.Peripherals.Sensors
             var sample = new Vector3DSample(x, y, z);
             for(var i = 0; i < repeat; i++)
             {
-                fifo.FeedSample(sample);
+                PushSample(sample);
             }
         }
 
-        public void FeedGyroSample(string path)
-        {
-            fifo.FeedSamplesFromFile(path);
-        }
-
         public void FeedGyroSamplesLooped(string path, uint frequency)
+        // Feeds gyro samples from a file in a loop at the specified frequency (in Hz)
+        // The file should contain a single sample, with x, y, z values separated by spaces
+        // Lines starting with # are ignored as comments
+        // Values between +-0.061 are considered 0, at least one value should be non-zero to pass the gyro self-test
+        // TODO: implement feeding multiple samples from a file and improve robustness
         {
             if(!this.TryGetMachine(out var machine))
             {
@@ -174,7 +167,8 @@ namespace Antmicro.Renode.Peripherals.Sensors
                 return;
             }
 
-            var samples = new List<Vector3DSample>();
+            var sample = new Vector3DSample();
+            // var samples = new List<Vector3DSample>();
             foreach(var line in System.IO.File.ReadAllLines(path))
             {
                 var trimmed = line.Trim();
@@ -183,14 +177,27 @@ namespace Antmicro.Renode.Peripherals.Sensors
                     continue;
                 }
                 var tokens = trimmed.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
-                var sample = new Vector3DSample();
-                if(sample.TryLoad(tokens))
-                {
-                    samples.Add(sample);
-                }
+                sample.TryLoad(tokens);
+                // if(sample.TryLoad(tokens))
+                // {
+                //     samples.Add(sample);
+                // }
             }
+            StopGyroSamplesFeed();
+            dataPushThread = machine.ObtainManagedThread(
+                action: () => PushSample(sample),
+                frequency: frequency,
+                name: "gyro data push",
+                owner: this
+            );
+            dataPushThread.Start();
+            this.Log(LogLevel.Info, "Feeding looped gyro samples {0} at {1} Hz", sample, frequency);
+        }
 
-            fifo.FeedSamplesPeriodically(machine, this, "gyro", "0ms", frequency, samples);
+        public void StopGyroSamplesFeed()
+        {
+            dataPushThread?.Stop();
+            this.Log(LogLevel.Info, "Looped gyro samples feed stopped");
         }
 
         private void DefineRegisters()
