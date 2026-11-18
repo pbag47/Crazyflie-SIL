@@ -13,8 +13,9 @@ Project roadmap:
 | Step | Validation | Status |
 | --- | --- | --- |
 | Renode: Migrate existing code to a newer version of Renode (1.17.0) | Pass the system self-test | ✅ |
-| Renode: Provide synthetic data to sensors | Reach ready-to-fly state | :small_orange_diamond: |
-| Renode: Provide pilot input | Observe motor PWM commands |  | 
+| Renode: Provide synthetic data to sensors | Reach ready-to-fly state | ✅ |
+| cflib: Create drivers to send CRTP packets over UDP to the syslink-usart6 interface | :small_orange_diamond: |
+| Renode: Provide pilot input | Observe motor PWM commands | :small_orange_diamond: | 
 | Renode: Setup UDP communication to provide data to sensors and retrieve motor PWM commands | Feed sensor data and observe motor PWM from another process |  |
 | Physics Engine: Model the Crazyflie, its motors and its sensors |  |  |
 | Physics Engine: Setup UDP communication | Fly the Crazyflie model using its emulated hardware in Renode | |
