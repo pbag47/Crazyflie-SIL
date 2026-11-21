@@ -48,6 +48,7 @@ usart3: UART.STM32_UART @ sysbus <0x40004800, +0x400>
     -> nvic@39
 
 usart6: UART.STM32_UART @ sysbus <0x40011400, +0x400>
+    frequency: 84000000
     -> nvic@71
 
 exti: IRQControllers.STM32F4_EXTI @ sysbus 0x40013C00

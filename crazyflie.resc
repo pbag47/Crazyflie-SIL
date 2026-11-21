@@ -2,8 +2,9 @@
 :Original source: https://github.com/bitcraze/renode/tree/crazyflie
 :path: /renode/scripts/single-node/crazyflie.resc
 
-logFile @logs/logfile.log true 
-# logLevel 3 file 
+logFile @logs/renode.log true 
+logLevel 2 file 
+logLevel 3 console
 
 
 include @custom-renode-assets/STM32F4_I2C.cs 
@@ -17,6 +18,8 @@ include @custom-renode-assets/BMP388.cs
 
 mach create "CF2.1"
 machine LoadPlatformDescription @cf2.repl 
+emulation SetAdvanceImmediately true
+emulation SetGlobalQuantum "0.0001"
 
 # Should be written during production
 sysbus.otp WriteString 0x7800 "0;CF21"
@@ -37,8 +40,9 @@ syslink Start
 machine StartGdbServer 3333
 emulation CreateServerSocketTerminal 3456 "sensors"
 connector Connect sysbus.i2c3.bmi_gyro sensors
-# emulation CreateServerSocketTerminal 3457 "syslink"
-# connector Connect sysbus.usart6 syslink
+
+emulation CreateServerSocketTerminal 3457 "nRF" false 
+connector Connect sysbus.usart6 nRF
 
 # Uncomment/comment to toggle noisy LEDs logLevel
 # logLevel -1 console sysbus.gpioPortD.ledB
@@ -55,14 +59,17 @@ connector Connect sysbus.i2c3.bmi_gyro sensors
 # logLevel -1 file sysbus.i2c3 
 # logLevel -1 file sysbus.dma1 
 # logLevel -1 file sysbus.i2c3.bmi_gyro 
+# logLevel -1 file sysbus.usart6
 
-# Two initial data samples required to pass initialization and test
-# sysbus.i2c3.bmi_gyro FeedGyroSample 10 20 30 2
+# Data samples required to pass initialization and test
 sysbus.i2c3.bmi_gyro FeedGyroSamplesLooped @data/gyro_values.txt 1000
 
 # sysbus LogPeripheralAccess sysbus.i2c3
 # sysbus LogAllPeripheralsAccess true
 # sysbus.cpu LogFunctionNames true
 
-sysbus.usart3 AddLineHook "" "Antmicro.Renode.Logging.Logger.Log(LogLevel.Error, line)"
+# sysbus.usart3 AddLineHook "" "Antmicro.Renode.Logging.Logger.Log(LogLevel.Error, line)"
 # sysbus.usart3 AddLineHook "Free heap" "Antmicro.Renode.Emulator.Exit()"
+
+emulation RunFor "10"
+sysbus.i2c3 LowerImmediately true
