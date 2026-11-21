@@ -63,10 +63,6 @@ namespace Antmicro.Renode.Peripherals.I2C
 
         public uint ReadDoubleWord(long offset)
         {
-            if(offset == (long)Registers.Status1) 
-            { 
-                Count(ref sr1Reads); 
-            }
             var value = registers.Read(offset);
             LowerIfIdle();
             return value;
@@ -166,8 +162,7 @@ namespace Antmicro.Renode.Peripherals.I2C
 
         private void InterruptEnableChange(bool oldValue, bool newValue)
         {
-            // machine.LocalTimeSource.ExecuteInNearestSyncedState(_ => Update());
-            SyncedExec(_ => Update());
+            machine.LocalTimeSource.ExecuteInNearestSyncedState(_ => Update());
         }
 
         private bool EventCondition()
@@ -195,10 +190,10 @@ namespace Antmicro.Renode.Peripherals.I2C
             }
         }
 
-        public bool evt;
         private void Update()
         {
-            evt = eventInterruptEnable.Value && (
+            EventInterrupt.Set(
+                eventInterruptEnable.Value && (
                     startBit.Value 
                     || addressSentOrMatched.Value 
                     || byteTransferFinished.Value
@@ -207,15 +202,9 @@ namespace Antmicro.Renode.Peripherals.I2C
                             dataRegisterEmpty.Value || dataRegisterNotEmpty.Value
                         )
                     )
-                );
-            EventInterrupt.Set(evt);
+                )
+            );
             ErrorInterrupt.Set(errorInterruptEnable.Value && acknowledgeFailed.Value);
-
-            if(evt && !lastEvt)
-            {
-                Count(ref evtEdges);
-            }
-            lastEvt = evt;
         }
 
         private void PulseDmaRequest() 
@@ -237,7 +226,7 @@ namespace Antmicro.Renode.Peripherals.I2C
                 this.Log(LogLevel.Warning, "Tried to read from an empty fifo");
             }
 
-            byteTransferFinished.Value = (dataToReceive != null && dataToReceive.Count > 0);
+            byteTransferFinished.Value = dataToReceive != null && dataToReceive.Count > 0;
 
             Update();
             return result;
@@ -245,7 +234,6 @@ namespace Antmicro.Renode.Peripherals.I2C
 
         private void DataWrite(ulong oldValue, ulong newValue) 
         {
-            Count(ref dataWrites);
             //moved from WriteByte
             writeLock = true;
             byteTransferFinished.Value = false;
@@ -270,8 +258,7 @@ namespace Antmicro.Renode.Peripherals.I2C
                         dataToReceive = new Queue<byte>(selectedSlave.Read());
                         byteTransferFinished.Value = true;
                         var bytesToDeliver = dataToReceive.Count;
-                        // machine.LocalTimeSource.ExecuteInNearestSyncedState(_ =>
-                        SyncedExec(_ =>
+                        machine.LocalTimeSource.ExecuteInNearestSyncedState(_ =>
                         {
                             for(var i = 0; i < bytesToDeliver; i++)
                             {
@@ -295,20 +282,17 @@ namespace Antmicro.Renode.Peripherals.I2C
                     state = State.Idle;
                     acknowledgeFailed.Value = true;
                 }
-                // machine.LocalTimeSource.ExecuteInNearestSyncedState(_ => Update());
-                SyncedExec(_ => Update());
+                machine.LocalTimeSource.ExecuteInNearestSyncedState(_ => Update());
                 break;
             case State.AwaitingData:
                 dataToTransfer.Add((byte)newValue);
 
-                // machine.LocalTimeSource.ExecuteInNearestSyncedState(_ =>
-                SyncedExec(_ =>
+                machine.LocalTimeSource.ExecuteInNearestSyncedState(_ =>
                 {
                     dataRegisterEmpty.Value = true;
                     Update();
                     writeLock = false;
-                    // machine.LocalTimeSource.ExecuteInNearestSyncedState(__ =>
-                    SyncedExec(__ =>
+                    machine.LocalTimeSource.ExecuteInNearestSyncedState(__ =>
                     {
                         if(!writeLock)
                         {
@@ -442,39 +426,6 @@ namespace Antmicro.Renode.Peripherals.I2C
             Idle,
             AwaitingAddress,
             AwaitingData,
-        }
-    
-
-
-        // ----- DEBUG TOOLS -----
-
-        private long evtEdges, syncCalls, dataWrites, sr1Reads;
-        private ulong lastReportMs;
-        private bool lastEvt;
-
-        private void Count(ref long counter)
-        {
-            counter++;
-            var ms = (ulong)machine.LocalTimeSource.ElapsedVirtualTime.TotalMilliseconds;
-            if(ms - lastReportMs >= 1000)
-            {
-                this.Log(LogLevel.Warning, "I2C/s: evtEdges={0} syncCalls={1} dataWrites={2} sr1Reads={3}", evtEdges, syncCalls, dataWrites, sr1Reads);
-                evtEdges = syncCalls = dataWrites = sr1Reads = 0;
-                lastReportMs = ms;
-                // lock(pcLock)
-                // {
-                //     var top = sr1ByPc.OrderByDescending(kv => kv.Value).Take(5)
-                //                     .Select(kv => string.Format("0x{0:X}:{1}", kv.Key, kv.Value));
-                //     this.Log(LogLevel.Warning, "SR1 par PC: {0}", string.Join(" ", top));
-                //     sr1ByPc.Clear();
-                // }
-            }
-        }
-
-        private void SyncedExec(Action<TimeStamp> action)
-        {
-            Count(ref syncCalls);
-            machine.LocalTimeSource.ExecuteInNearestSyncedState(action);
         }
     }
 }
