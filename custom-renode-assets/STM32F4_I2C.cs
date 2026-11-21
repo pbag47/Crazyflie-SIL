@@ -192,18 +192,7 @@ namespace Antmicro.Renode.Peripherals.I2C
 
         private void Update()
         {
-            EventInterrupt.Set(
-                eventInterruptEnable.Value && (
-                    startBit.Value 
-                    || addressSentOrMatched.Value 
-                    || byteTransferFinished.Value
-                    || (
-                        bufferInterruptEnable.Value && (
-                            dataRegisterEmpty.Value || dataRegisterNotEmpty.Value
-                        )
-                    )
-                )
-            );
+            EventInterrupt.Set(EventCondition());
             ErrorInterrupt.Set(errorInterruptEnable.Value && acknowledgeFailed.Value);
         }
 
